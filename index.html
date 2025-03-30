@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>フラッグマン風ゲーム</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: #f0f0f0;
+    }
+    #game {
+      margin-top: 50px;
+    }
+    #buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin: 20px;
+    }
+    .flag-button {
+      font-size: 24px;
+      width: 60px;
+      height: 60px;
+      border-radius: 10px;
+      background-color: #ddd;
+      border: 2px solid #999;
+      transition: background-color 0.2s;
+    }
+    .flag-button.active {
+      background-color: yellow;
+    }
+    #score {
+      font-size: 24px;
+      margin-top: 10px;
+      color: #333;
+    }
+    #message {
+      font-size: 20px;
+      margin-top: 20px;
+      height: 30px;
+    }
+  </style>
+</head>
+<body>
+  <h1>フラッグマン風ゲーム</h1>
+  <div id="game">
+    <div id="buttons">
+      <button class="flag-button" data-num="1">1</button>
+      <button class="flag-button" data-num="2">2</button>
+      <button class="flag-button" data-num="3">3</button>
+      <button class="flag-button" data-num="4">4</button>
+    </div>
+    <button id="startBtn">スタート</button>
+    <div id="score">スコア: 0</div>
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const sequence = [];
+    let playerInput = [];
+    let round = 0;
+
+    const buttons = document.querySelectorAll('.flag-button');
+    const startBtn = document.getElementById('startBtn');
+    const message = document.getElementById('message');
+    const scoreDisplay = document.getElementById('score');
+
+    // AudioContext（音）
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const tones = [440, 550, 660, 880]; // 各ボタンの周波数
+
+    const vibrationPatterns = [
+      [100],
+      [200],
+      [100, 50, 100],
+      [300]
+    ];
+
+    startBtn.addEventListener('click', startGame);
+
+    buttons.forEach(button => {
+      button.addEventListener('click', () => handlePlayerInput(button.dataset.num));
+    });
+
+    function startGame() {
+      round = 0;
+      sequence.length = 0;
+      message.textContent = '';
+      scoreDisplay.textContent = 'スコア: 0';
+      nextRound();
+    }
+
+    function nextRound() {
+      round++;
+      playerInput = [];
+      const nextNum = Math.floor(Math.random() * 4) + 1;
+      sequence.push(nextNum);
+      message.textContent = `ラウンド ${round}`;
+      scoreDisplay.textContent = `スコア: ${round - 1}`;
+      showSequence();
+    }
+
+    function showSequence() {
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i >= sequence.length) {
+          clearInterval(interval);
+          return;
+        }
+        const num = sequence[i];
+        playFeedback(num);
+        i++;
+      }, 1000);
+    }
+
+    function playFeedback(num) {
+      const button = document.querySelector(`.flag-button[data-num="${num}"]`);
+      button.classList.add('active');
+
+      // 音
+      playTone(tones[num - 1]);
+
+      // 振動
+      if (navigator.vibrate) {
+        navigator.vibrate(vibrationPatterns[num - 1]);
+      }
+
+      setTimeout(() => {
+        button.classList.remove('active');
+      }, 500);
+    }
+
+    function playTone(freq, duration = 200) {
+      const oscillator = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      oscillator.frequency.value = freq;
+      oscillator.type = 'square';
+
+      oscillator.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      oscillator.start();
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      oscillator.stop(audioCtx.currentTime + duration / 1000);
+    }
+
+    function handlePlayerInput(num) {
+      const numInt = Number(num);
+      playerInput.push(numInt);
+
+      playFeedback(numInt);
+
+      const currentIndex = playerInput.length - 1;
+
+      if (playerInput[currentIndex] !== sequence[currentIndex]) {
+        message.textContent = 'ミス！ゲームオーバー';
+        scoreDisplay.textContent = `最終スコア: ${round - 1}`;
+        return;
+      }
+
+      if (playerInput.length === sequence.length) {
+        setTimeout(() => nextRound(), 1000);
+      }
+    }
+  </script>
+</body>
+</html>
