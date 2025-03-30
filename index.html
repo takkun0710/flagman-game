@@ -175,7 +175,7 @@
       }, 500);
     }
 
-    function playTone(freq, duration = 200) {
+    function playTone(freq, duration = 200, volume = 0.2) {
       const oscillator = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
 
@@ -186,8 +186,12 @@
       gain.connect(audioCtx.destination);
 
       oscillator.start();
-      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.setValueAtTime(volume, audioCtx.currentTime);
       oscillator.stop(audioCtx.currentTime + duration / 1000);
+    }
+
+    function playErrorTone() {
+      playTone(220, 300, 0.4); // 低くてちょっと不快な音
     }
 
     function handlePlayerInput(num) {
@@ -200,21 +204,22 @@
       const currentIndex = playerInput.length - 1;
 
       if (playerInput[currentIndex] !== sequence[currentIndex]) {
-        // ミス時：赤点滅 & ライフ減
+        // ミス：赤点滅、エラー音、ライフ減、でもゲーム継続
         button.classList.add('wrong');
         setTimeout(() => button.classList.remove('wrong'), 400);
+        playErrorTone();
         lives--;
         updateLives();
 
         if (lives <= 0) {
           message.textContent = 'ゲームオーバー';
           inputEnabled = false;
-          return;
         }
-        return; // ミスした場合、次の入力は受け取らない
+
+        return;
       }
 
-      // 正解時：緑点滅
+      // 正解：緑点滅
       button.classList.add('correct');
       setTimeout(() => button.classList.remove('correct'), 300);
       playTone(tones[numInt - 1]);
