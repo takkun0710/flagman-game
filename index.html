@@ -112,7 +112,7 @@
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const tones = [440, 550, 660, 880];
-    const digitTones = [400, 440, 480, 520, 560, 600, 640, 680, 720, 760];
+    const digitTones = [400, 440, 480, 520, 560, 600, 640, 680, 720, 760]; // 0〜9
 
     const vibrationPatterns = [
       [100],
@@ -216,31 +216,15 @@
     function playGameOverSound() {
       playTone(220, 150);
       setTimeout(() => playTone(180, 150), 180);
-      setTimeout(() => playTone(160, 300), 
-        
-    function speakScore(score) {
-  const text = `スコアは ${score} 点です`;
-
-  const speak = () => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'ja-JP';
-
-    const voices = speechSynthesis.getVoices();
-    const jpVoice = voices.find(v => v.lang.startsWith('ja'));
-
-    if (jpVoice) {
-      utterance.voice = jpVoice;
+      setTimeout(() => playTone(160, 300), 360);
     }
 
-    speechSynthesis.speak(utterance);
-  };
-
-  if (speechSynthesis.getVoices().length === 0) {
-    speechSynthesis.addEventListener('voiceschanged', speak);
-  } else {
-    speak();
-  }
-}
+    function playScoreAsBeeps(score) {
+      const digits = String(score).split('').map(Number);
+      digits.forEach((digit, i) => {
+        setTimeout(() => playTone(digitTones[digit], 250, 0.3), i * 350);
+      });
+    }
 
     function handlePlayerInput(num) {
       if (!inputEnabled) return;
@@ -262,7 +246,7 @@
           message.textContent = 'ゲームオーバー';
           inputEnabled = false;
           playGameOverSound();
-          setTimeout(() => speakScore(round - 1), 1500);
+          setTimeout(() => playScoreAsBeeps(round - 1), 1500);
           return;
         }
 
