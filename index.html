@@ -216,15 +216,31 @@
     function playGameOverSound() {
       playTone(220, 150);
       setTimeout(() => playTone(180, 150), 180);
-      setTimeout(() => playTone(160, 300), 360);
+      setTimeout(() => playTone(160, 300), 
+        
+    function speakScore(score) {
+  const text = `スコアは ${score} 点です`;
+
+  const speak = () => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ja-JP';
+
+    const voices = speechSynthesis.getVoices();
+    const jpVoice = voices.find(v => v.lang.startsWith('ja'));
+
+    if (jpVoice) {
+      utterance.voice = jpVoice;
     }
 
-    function speakScore(score) {
-      const text = `スコアは ${score} 点です`;
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'ja-JP';
-      speechSynthesis.speak(utterance);
-    }
+    speechSynthesis.speak(utterance);
+  };
+
+  if (speechSynthesis.getVoices().length === 0) {
+    speechSynthesis.addEventListener('voiceschanged', speak);
+  } else {
+    speak();
+  }
+}
 
     function handlePlayerInput(num) {
       if (!inputEnabled) return;
