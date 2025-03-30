@@ -133,8 +133,10 @@
       sequence.length = 0;
       message.textContent = '';
       scoreDisplay.textContent = 'スコア: 0';
-      playStartSound();
-      nextRound();
+
+      playStartSound(() => {
+        nextRound();
+      });
     }
 
     function nextRound() {
@@ -195,9 +197,20 @@
       playTone(220, 200, 0.4);
     }
 
-    function playStartSound() {
-      playTone(660, 150);
-      setTimeout(() => playTone(880, 200), 200);
+    function playStartSound(callback) {
+      const notes = [
+        { freq: 440, delay: 0 },
+        { freq: 660, delay: 200 },
+        { freq: 880, delay: 400 },
+        { freq: 660, delay: 650 },
+        { freq: 1040, delay: 850 }
+      ];
+      notes.forEach(note => {
+        setTimeout(() => playTone(note.freq, 120, 0.25), note.delay);
+      });
+      setTimeout(() => {
+        if (callback) callback();
+      }, 1200);
     }
 
     function playGameOverSound() {
