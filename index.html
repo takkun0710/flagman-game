@@ -21,6 +21,12 @@
       flex-direction: column;
     }
 
+    #lives {
+      font-size: 36px;
+      color: red;
+      margin-top: 10px;
+    }
+
     #game {
       display: flex;
       flex-direction: column;
@@ -49,6 +55,14 @@
       background-color: yellow;
     }
 
+    .flag-button.correct {
+      background-color: lightgreen;
+    }
+
+    .flag-button.wrong {
+      background-color: #f66;
+    }
+
     #startBtn {
       font-size: 28px;
       padding: 14px 36px;
@@ -70,6 +84,7 @@
 </head>
 <body>
   <h1>フラッグマン風ゲーム</h1>
+  <div id="lives">❤️❤️❤️</div>
   <div id="game">
     <div id="buttons">
       <button class="flag-button" data-num="1">1</button>
@@ -87,11 +102,13 @@
     let playerInput = [];
     let round = 0;
     let inputEnabled = false;
+    let lives = 3;
 
     const buttons = document.querySelectorAll('.flag-button');
     const startBtn = document.getElementById('startBtn');
     const message = document.getElementById('message');
     const scoreDisplay = document.getElementById('score');
+    const livesDisplay = document.getElementById('lives');
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const tones = [440, 550, 660, 880];
@@ -111,6 +128,8 @@
 
     function startGame() {
       round = 0;
+      lives = 3;
+      updateLives();
       sequence.length = 0;
       message.textContent = '';
       scoreDisplay.textContent = 'スコア: 0';
@@ -175,21 +194,38 @@
       if (!inputEnabled) return;
 
       const numInt = Number(num);
+      const button = document.querySelector(`.flag-button[data-num="${num}"]`);
       playerInput.push(numInt);
-      playFeedback(numInt);
 
       const currentIndex = playerInput.length - 1;
 
       if (playerInput[currentIndex] !== sequence[currentIndex]) {
-        message.textContent = 'ミス！ゲームオーバー';
-        scoreDisplay.textContent = `最終スコア: ${round - 1}`;
-        inputEnabled = false;
-        return;
+        // ミス時：赤点滅 & ライフ減
+        button.classList.add('wrong');
+        setTimeout(() => button.classList.remove('wrong'), 400);
+        lives--;
+        updateLives();
+
+        if (lives <= 0) {
+          message.textContent = 'ゲームオーバー';
+          inputEnabled = false;
+          return;
+        }
+        return; // ミスした場合、次の入力は受け取らない
       }
+
+      // 正解時：緑点滅
+      button.classList.add('correct');
+      setTimeout(() => button.classList.remove('correct'), 300);
+      playTone(tones[numInt - 1]);
 
       if (playerInput.length === sequence.length) {
         setTimeout(() => nextRound(), 1000);
       }
+    }
+
+    function updateLives() {
+      livesDisplay.textContent = '❤️'.repeat(lives) + '🤍'.repeat(3 - lives);
     }
   </script>
 </body>
