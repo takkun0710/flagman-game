@@ -133,6 +133,7 @@
       sequence.length = 0;
       message.textContent = '';
       scoreDisplay.textContent = 'スコア: 0';
+      playStartSound();
       nextRound();
     }
 
@@ -191,7 +192,18 @@
     }
 
     function playErrorTone() {
-      playTone(220, 300, 0.4); // エラー音（低音）
+      playTone(220, 200, 0.4);
+    }
+
+    function playStartSound() {
+      playTone(660, 150);
+      setTimeout(() => playTone(880, 200), 200);
+    }
+
+    function playGameOverSound() {
+      playTone(220, 150);
+      setTimeout(() => playTone(180, 150), 180);
+      setTimeout(() => playTone(160, 300), 360);
     }
 
     function handlePlayerInput(num) {
@@ -204,7 +216,6 @@
       const currentIndex = playerInput.length - 1;
 
       if (playerInput[currentIndex] !== sequence[currentIndex]) {
-        // ミス処理：エフェクト＋ライフ減＋お題再生
         button.classList.add('wrong');
         setTimeout(() => button.classList.remove('wrong'), 400);
         playErrorTone();
@@ -214,6 +225,7 @@
         if (lives <= 0) {
           message.textContent = 'ゲームオーバー';
           inputEnabled = false;
+          playGameOverSound();
           return;
         }
 
@@ -223,7 +235,6 @@
         return;
       }
 
-      // 正解処理
       button.classList.add('correct');
       setTimeout(() => button.classList.remove('correct'), 300);
       playTone(tones[numInt - 1]);
