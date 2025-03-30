@@ -112,6 +112,7 @@
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const tones = [440, 550, 660, 880];
+    const digitTones = [400, 440, 480, 520, 560, 600, 640, 680, 720, 760];
 
     const vibrationPatterns = [
       [100],
@@ -133,7 +134,6 @@
       sequence.length = 0;
       message.textContent = '';
       scoreDisplay.textContent = 'スコア: 0';
-
       playStartSound(() => {
         nextRound();
       });
@@ -219,6 +219,13 @@
       setTimeout(() => playTone(160, 300), 360);
     }
 
+    function speakScore(score) {
+      const text = `スコアは ${score} 点です`;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ja-JP';
+      speechSynthesis.speak(utterance);
+    }
+
     function handlePlayerInput(num) {
       if (!inputEnabled) return;
 
@@ -239,6 +246,7 @@
           message.textContent = 'ゲームオーバー';
           inputEnabled = false;
           playGameOverSound();
+          setTimeout(() => speakScore(round - 1), 1500);
           return;
         }
 
