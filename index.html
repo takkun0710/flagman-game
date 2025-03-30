@@ -4,37 +4,57 @@
   <meta charset="UTF-8">
   <title>フラッグマン風ゲーム</title>
   <style>
-    body {
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100vh;
+      touch-action: none;
+      background: #f0f0f0;
       font-family: sans-serif;
       text-align: center;
-      background: #f0f0f0;
     }
+
     #game {
-      margin-top: 50px;
+      padding-top: 20px;
     }
+
     #buttons {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 20px;
       justify-content: center;
-      gap: 15px;
-      margin: 20px;
+      max-width: 300px;
+      margin: 30px auto;
     }
+
     .flag-button {
-      font-size: 24px;
-      width: 60px;
-      height: 60px;
-      border-radius: 10px;
+      font-size: 32px;
+      width: 120px;
+      height: 120px;
+      border-radius: 15px;
       background-color: #ddd;
       border: 2px solid #999;
       transition: background-color 0.2s;
     }
+
     .flag-button.active {
       background-color: yellow;
     }
+
+    #startBtn {
+      font-size: 20px;
+      padding: 10px 30px;
+      margin-top: 10px;
+    }
+
     #score {
       font-size: 24px;
       margin-top: 10px;
       color: #333;
     }
+
     #message {
       font-size: 20px;
       margin-top: 20px;
@@ -60,15 +80,15 @@
     const sequence = [];
     let playerInput = [];
     let round = 0;
+    let inputEnabled = false;
 
     const buttons = document.querySelectorAll('.flag-button');
     const startBtn = document.getElementById('startBtn');
     const message = document.getElementById('message');
     const scoreDisplay = document.getElementById('score');
 
-    // AudioContext（音）
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const tones = [440, 550, 660, 880]; // 各ボタンの周波数
+    const tones = [440, 550, 660, 880];
 
     const vibrationPatterns = [
       [100],
@@ -102,10 +122,12 @@
     }
 
     function showSequence() {
+      inputEnabled = false;
       let i = 0;
       const interval = setInterval(() => {
         if (i >= sequence.length) {
           clearInterval(interval);
+          inputEnabled = true;
           return;
         }
         const num = sequence[i];
@@ -117,11 +139,8 @@
     function playFeedback(num) {
       const button = document.querySelector(`.flag-button[data-num="${num}"]`);
       button.classList.add('active');
-
-      // 音
       playTone(tones[num - 1]);
 
-      // 振動
       if (navigator.vibrate) {
         navigator.vibrate(vibrationPatterns[num - 1]);
       }
@@ -147,9 +166,10 @@
     }
 
     function handlePlayerInput(num) {
+      if (!inputEnabled) return;
+
       const numInt = Number(num);
       playerInput.push(numInt);
-
       playFeedback(numInt);
 
       const currentIndex = playerInput.length - 1;
@@ -157,6 +177,7 @@
       if (playerInput[currentIndex] !== sequence[currentIndex]) {
         message.textContent = 'ミス！ゲームオーバー';
         scoreDisplay.textContent = `最終スコア: ${round - 1}`;
+        inputEnabled = false;
         return;
       }
 
